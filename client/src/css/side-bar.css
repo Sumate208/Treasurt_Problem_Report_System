@@ -1,0 +1,113 @@
+/* ---------------------------------------------------
+    SIDEBAR STYLE
+----------------------------------------------------- */
+
+.wrapper {
+    display: flex;
+    align-items: stretch;
+    min-width: 100vw;
+    min-height: 100vh;
+    max-height: 100vh;
+  }
+  
+  #sidebar {
+    min-width: 250px;
+    max-width: 250px;
+    color: #fff;
+    transition: all 0.3s;
+    z-index: 9;
+    box-shadow: 0px 53px 5px 0px #000000;
+  }
+  
+  #sidebar {
+    margin-left: 0;
+  }
+  #sidebar.active {
+    margin-left: -250px;
+  }
+  
+  #sidebar .sidebar-header {
+    padding: 11px;
+    min-height: 3.25rem;
+    background: #6d7fcc;
+  }
+  
+  #sidebar ul.components {
+    padding: 20px 0;
+  }
+  
+  #sidebar ul p {
+    color: #fff;
+    padding: 10px;
+  }
+  
+  #sidebar ul li a {
+    padding: 10px;
+    font-size: 1.1em;
+    display: block;
+  }
+  
+  #sidebar ul li a:hover {
+    color: black;
+    background: #fff;
+  }
+
+  ul.CTAs {
+    padding: 15px;
+  }
+  
+  ul.CTAs a {
+    margin-bottom: 5px;
+  }
+  
+  /* ---------------------------------------------------
+      CONTENT STYLE
+  ----------------------------------------------------- */
+  
+  #content {
+    width: 100%;
+    min-width: 412px;
+    min-height: 100vh;
+    overflow-y: scroll;
+    transition: all 0.3s;
+  }
+
+  
+  /* ---------------------------------------------------
+      MEDIAQUERIES
+  ----------------------------------------------------- */
+  @media only screen and (max-width: 1024px) {
+    #content .navbar {
+      align-items: stretch;
+      display: flex;
+      min-height: 3.25rem;
+      width: 100%;
+      justify-content: space-between;
+      align-items: center;
+      padding-top: 0;
+    }
+    .navbar,
+    .navbar-end,
+    .navbar-menu,
+    .navbar-start {
+      display: flex;
+      align-items: stretch;
+    }
+    .navbar-item {
+      display: flex;
+      align-items: center;
+    }
+  
+    #sidebar {
+      margin-left: -250px;
+    }
+    #sidebar.active {
+      margin-left: 0;
+    }
+    #sidebarCollapse span {
+      display: none;
+    }
+    .navbar-start a {
+      display: flex;
+    }
+  }
