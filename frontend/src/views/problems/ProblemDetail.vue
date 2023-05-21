@@ -1,28 +1,16 @@
 <template>
   <div class="container pt-5 px-6 pb-6">
-    <p
-      class="is-size-4-tablet has-text-centered"
-      :class="{ 'has-text-white': this.$parent.$data.darkMode }"
-    >
+    <p class="is-size-4-tablet has-text-centered">
       รายละเอียดขอแก้ไขข้อมูลหรือข้อผิดพลาดระบบงาน
     </p>
 
     <!-- Detail ส่วนของผู้แจ้ง -->
     <section>
-      <div
-        class="root-rpShow px-3"
-        :class="{ 'has-background-grey-light': this.$parent.$data.darkMode }"
-      >
+      <div class="root-rpShow px-3">
         <div class="columns is-desktop">
           <div
             style="background-color: #bbb"
-            :style="darkModeStyle1"
             class="column is-full rpShow has-text-centered"
-            :class="[
-              this.$parent.$data.darkMode
-                ? 'has-background-dark has-text-white'
-                : 'has-background-danger-light',
-            ]"
           >
             <h3 class="is-size-5">ส่วนของผู้แจ้งปัญหาระบบงาน</h3>
           </div>
@@ -30,20 +18,18 @@
         <div class="columns is-desktop">
           <div
             class="column is-full rpShow has-text-left"
-            :style="darkModeStyle1"
           >
             <label class="has-text-grey"
               >ชื่อระบบงาน:
               <span class="has-text-black">{{
                 problem.system_name
-              }}</span></label
-            >
+              }}</span>
+            </label>
           </div>
         </div>
         <div class="columns is-desktop">
           <div
             class="column is-full rpShow has-text-left"
-            :style="darkModeStyle1"
           >
             <label class="has-text-grey"
               >สำนัก/กอง/กลุ่ม/สนง.ธพ:
@@ -54,7 +40,6 @@
         <div class="columns is-desktop">
           <div
             class="column is-half-desktop is-full-mobile rpShow has-text-left"
-            :style="darkModeStyle1"
           >
             <label class="has-text-grey"
               >ชื่อ-สกุล ผู้ขอแก้ไข:
@@ -65,7 +50,6 @@
           </div>
           <div
             class="column is-half-desktop is-full-mobile rpShow has-text-left"
-            :style="darkModeStyle1"
           >
             <label class="has-text-grey"
               >วันที่ขอแก้ไข:
@@ -76,7 +60,6 @@
         <div class="columns is-desktop">
           <div
             class="column is-full rpShow has-text-left"
-            :style="darkModeStyle1"
           >
             <label class="has-text-grey"
               >ตำแหน่ง:
@@ -87,7 +70,6 @@
         <div class="columns is-desktop">
           <div
             class="column is-full rpShow has-text-left"
-            :style="darkModeStyle1"
           >
             <label class="has-text-grey" id="detail"
               >รายละเอียดการขอแก้ไข:
@@ -128,21 +110,14 @@
         v-if="
           problem.analysis ||
           (problem.assign_details &&
-            this.$parent.$data.user?.user_type == 'staff')
+            this.user?.user_type == 'staff')
         "
         class="root-rpShow px-3"
-        :class="{ 'has-background-grey-light': this.$parent.$data.darkMode }"
       >
         <div class="columns is-desktop">
           <div
             style="background-color: #bbb"
-            :style="darkModeStyle1"
             class="column is-full rpShow has-text-centered"
-            :class="[
-              this.$parent.$data.darkMode
-                ? 'has-background-dark has-text-white'
-                : 'has-background-danger-light',
-            ]"
           >
             <h3 class="is-size-5">
               ส่วนของศูนย์เทคโนโลยีสารสนเทศและการสื่อสาร
@@ -153,12 +128,11 @@
           class="columns is-desktop"
           v-if="
             problem.assign_details &&
-            this.$parent.$data.user?.user_type == 'staff'
+            this.user?.user_type == 'staff'
           "
         >
           <div
             class="column is-full rpShow has-text-left"
-            :style="darkModeStyle1"
           >
             <label class="has-text-grey"
               >รายละเอียดการมอบหมาย:
@@ -171,7 +145,6 @@
         <div class="columns is-desktop" v-if="problem.analysis">
           <div
             class="column is-full rpShow has-text-left"
-            :style="darkModeStyle1"
           >
             <label class="has-text-grey"
               >ประเภท:
@@ -184,7 +157,6 @@
         <div class="columns is-desktop" v-if="problem.analysis">
           <div
             class="column is-full rpShow has-text-left"
-            :style="darkModeStyle1"
           >
             <label class="has-text-grey" id="detail"
               >ผลการวิเคราะห์/การแก้ไข:
@@ -221,25 +193,22 @@
     <section class="mt-4">
       <div
         class="box-shadow"
-        :style="darkModeStyle3"
-        :class="{ 'has-text-white': this.$parent.$data.darkMode }"
       >
         <p
           class="is-size-4-tablet has-text-centered mb-3"
-          :class="{ 'has-text-white': this.$parent.$data.darkMode }"
         >
           ติดตามผล
         </p>
         <div v-for="(log, index) in logs" :key="index">
           <div class="columns is-tablet px-6">
             <div class="column is-2-tablet is-2-mobile has-text-left">
-              <label> {{ log.LOG_DATE }} </label>
+              <label> {{ log.log_date }} </label>
             </div>
             <div class="column is-1-tablet is-1-mobile dnon has-text-centered">
               <div class="LogDot" :class="logDot(index)"></div>
             </div>
             <div class="column has-text-left">
-              <label>{{ log.DISCRIPTION }}</label>
+              <label>{{ log.discription }}</label>
             </div>
           </div>
           <hr
@@ -254,7 +223,7 @@
     <section
       class="mt-2 has-text-centered"
       v-if="
-        this.$parent.$data.user?.user_id == problem.editor_id &&
+        this.user?.user_id == problem.editor_id &&
         problem.state == 1
       "
     >
@@ -270,7 +239,7 @@
     <section
       class="box-shadow mt-4"
       v-if="
-        this.$parent.$data.user?.user_id == problem.editor_id &&
+        this.user?.user_id == problem.editor_id &&
         (problem.state == 2 || problem.state == 3)
       "
     >
@@ -279,10 +248,9 @@
         <div
           v-if="problem.state == 2"
           class="select is-fullwidth"
-          :class="[$v.s23AssignId.$invalid ? 'is-danger' : 'is-success']"
+          :class="[v$.s23AssignId.$invalid ? 'is-danger' : 'is-success']"
         >
-          <select id="select" v-model="$v.s23AssignId.$model">
-            <!-- v-model="$v.agency.$model" -->
+          <select id="select" v-model="s23AssignId">
             <option value="" disabled selected>เลือกส่วนงานที่รับผิดชอบ</option>
             <optgroup
               v-for="(staff, index) in s23ArrStaff"
@@ -310,16 +278,16 @@
         <div
           v-if="problem.state == 3"
           class="select is-fullwidth"
-          :class="[$v.s23AssignId.$invalid ? 'is-danger' : 'is-success']"
+          :class="[v$.s23AssignId.$invalid ? 'is-danger' : 'is-success']"
         >
-          <select id="select" v-model="$v.s23AssignId.$model">
+          <select id="select" v-model="s23AssignId">
             <option value="" disabled selected>เลือกผู้ดำเนินการ</option>
             <option
               v-for="(staff, index) in s23ArrStaff"
               :value="staff.user_id"
               :key="index"
             >
-              {{ staff.FIRST_NAME + " " + staff.LAST_NAME }}
+              {{ staff.first_name + " " + staff.last_name }}
             </option>
           </select>
         </div>
@@ -338,7 +306,7 @@
     <section
       class="box-shadow mt-4"
       v-if="
-        this.$parent.$data.user?.user_id == problem.editor_id &&
+        this.user?.user_id == problem.editor_id &&
         problem.state == 4
       "
     >
@@ -369,28 +337,37 @@
           <label class="label">ผลการวิเคราะห์/การแก้ไข</label>
           <div class="control">
             <textarea
-              v-model="$v.s4Analysis.$model"
+              v-model="s4Analysis"
               class="textarea"
               placeholder="ความยาวไม่เกิน 1000 ตัวอักษร"
-              :class="[$v.s4Analysis.$invalid ? 'is-danger' : 'is-success']"
+              :class="[v$.s4Analysis.$invalid ? 'is-danger' : 'is-success']"
             ></textarea>
           </div>
         </div>
-
-        <vue-dropzone
-          class="mt-2"
-          ref="myVueDropzone"
-          id="dropzone"
-          :useCustomSlot="true"
-          :options="dropzoneOptions"
-          @vdropzone-success="vsuccess"
-          @vdropzone-removed-file="vremove"
-        >
-          <div class="dropzone-custom-content">
-            <h3 class="dropzone-custom-title">ลากแล้ววางเพื่อเพิ่มไฟล์</h3>
-            <div class="subtitle">...หรือคลิกเพื่อเลือกไฟล์</div>
+        <!-- DropZone -->
+        <div>
+          <div v-if="state.files.length > 0" class="files">
+            <div class="file-item" v-for="(file, index) in state.files" :key="index">
+              <span>{{ file.name }}</span>
+              <span class="delete-file" @click="handleClickDeleteFile(index)"
+                >Delete</span
+              >
+            </div>
           </div>
-        </vue-dropzone>
+          <div v-else class="dropzone" v-bind="getRootProps()">
+            <div
+              class="border"
+              :class="{
+                isDragActive,
+              }"
+            >
+              <input v-bind="getInputProps()" />
+              <p v-if="isDragActive">Drop the files here ...</p>
+              <p v-else>Drag and drop files here, or Click to select files</p>
+            </div>
+          </div>
+        </div>
+        
         <div class="mt-3 has-text-centered">
           <button class="button is-link mx-1" @click="s4analys()">
             บันทึก
@@ -406,7 +383,7 @@
     <section
       class="mt-4 has-text-centered"
       v-if="
-        this.$parent.$data.user?.user_id == problem.editor_id &&
+        this.user?.user_id == problem.editor_id &&
         (problem.state == 5 || problem.state == 6)
       "
     >
@@ -518,18 +495,15 @@
 
 <script>
 import axios from "@/plugins/axios";
-import vue2Dropzone from "vue2-dropzone";
-import { required } from "vuelidate/lib/validators";
+import { required} from "@vuelidate/validators";
+import { useVuelidate } from '@vuelidate/core'
+import { useDropzone } from 'vue3-dropzone';
 
 export default {
   name:"ProblemDetail",
-  components: {
-    vueDropzone: vue2Dropzone,
-  },
   data() {
     return {
       problem: {},
-      files: [],
       logs: [],
       // alert modal
       mAlertText: "",
@@ -551,42 +525,14 @@ export default {
       // data state5
       s5ModalActive: false,
       // dropzone
-      dropzoneOptions: {
-        url: "https://httpbin.org/post",
-        thumbnailWidth: 200,
-        maxFilesize: 0.5,
-        headers: { "My-Awesome-Header": "header value" },
-        addRemoveLinks: true,
-        maxFiles: 5,
-      },
     };
   },
   mounted() {
     this.getDetail();
   },
   methods: {
-    // เปลี่ยน icon
-    fileType(name,type){
-      let indexDot = name.indexOf(".")
-      if(name.slice(indexDot+1) == type){return true}
-      else{return false}
-    },
-    // อัพโหลดไฟล์
-    vsuccess(file) {
-      this.filesUpload.push(file);
-      this.filesUploadName.push(file.upload.filename);
-    },
-    // ลบไฟล์ที่เลือก
-    vremove(file) {
-      var index = this.filesUpload.indexOf(file);
-      if (index > -1) {
-        this.filesUpload.splice(index, 1);
-        this.filesUploadName.splice(index, 1);
-      }
-    },
     // หาข้อมูล problem ไป server (ไฟล์ server/routes/problem.js) ที่ get("/problem/detail")
     async getDetail() {
-      this.$parent.$data.isLoading = true;
       await axios
         .get("/problem/detail", { params: { id: this.$route.params.id } })
         .then((res) => {
@@ -611,10 +557,8 @@ export default {
           else if (res.data.problem.state == 3) {
             this.getEmployee();
           }
-          this.$parent.$data.isLoading = false;
         })
         .catch((e) => {
-          this.$parent.$data.isLoading = false;
           alert(e.response.data);
           this.$router.push("/");
         });
@@ -689,7 +633,7 @@ export default {
         .catch((e) => console.log(e.response.data));
     },
     s23Assign() {
-      if (!this.$v.s23AssignId.$invalid) {
+      if (!this.v$.s23AssignId.$invalid) {
         const data = {
           problemId: this.$route.params.id,
           nextEditorId: this.s23AssignId,
@@ -705,8 +649,7 @@ export default {
       }
     },
     s4analys() {
-      if (!this.$v.s4Analysis.$invalid) {
-        this.$parent.$data.isLoading = true;
+      if (!this.v$.s4Analysis.$invalid) {
         // set data //
         let formData = new FormData();
         const token = localStorage.getItem("ts-token");
@@ -725,12 +668,10 @@ export default {
           .put("/problem/analysis", formData)
           .then((res) => {
             this.mAlertText = res.data;
-            this.$parent.$data.isLoading = false;
             this.mAlertActive = true;
           })
           .catch((e) => {
             console.log(e.response.data);
-            this.$parent.$data.isLoading = false;
           });
       }
     },
@@ -749,41 +690,61 @@ export default {
     },
   },
   computed: {
-    darkModeStyle1() {
-      if (!this.$parent.$data.darkMode) {
-        return "border: solid 3px plum;";
-      } else {
-        return "border: solid 3px rgb(59, 59, 59);";
-      }
-    },
-    darkModeStyle2() {
-      if (!this.$parent.$data.darkMode) {
-        return "background-color: lightskyblue;";
-      } else {
-        return "background-color: rgb(59, 59, 59);";
-      }
-    },
-    darkModeStyle3() {
-      if (!this.$parent.$data.darkMode) {
-        return "border: 5px solid limegreen;";
-      } else {
-        return "border: 10px solid rgb(59, 59, 59);";
-      }
-    },
   },
-  validations: {
-    s23AssignId: {
-      required: required,
-    },
-    s4Analysis: {
-      required: required,
-    },
+  validations () {
+    return {
+      s23AssignId: {
+        required: required,
+      },
+      s4Analysis: {
+        required: required,
+      },
+    }
+  },
+  setup() {
+    const v$ = useVuelidate();
+
+    const url = "{your_url}"; // Your url on the server side
+    const saveFiles = (files) => {
+      const formData = new FormData(); // pass data as a form
+      for (var x = 0; x < files.length; x++) {
+        // append files as array to the form, feel free to change the array name
+        formData.append("images[]", files[x]);
+      }
+
+      // post the formData to your backend where storage is processed. In the backend, you will need to loop through the array and save each file through the loop.
+
+      axios
+        .post(url, formData, {
+          headers: {
+            "Content-Type": "multipart/form-data",
+          },
+        })
+        .then((response) => {
+          console.info(response.data);
+        })
+        .catch((err) => {
+          console.error(err);
+        });
+    };
+
+    function onDrop(acceptFiles, rejectReasons) {
+      saveFiles(acceptFiles); // saveFiles as callback
+      console.log(rejectReasons);
+    }
+
+    const { getRootProps, getInputProps, ...rest } = useDropzone({ onDrop });
+    return {
+      getRootProps,
+      getInputProps,
+      ...rest,
+      v$,
+    };
   },
 };
 </script>
 
 <style>
-@import "vue2-dropzone/dist/vue2Dropzone.min.css";
 #select {
   height: 40px;
 }
