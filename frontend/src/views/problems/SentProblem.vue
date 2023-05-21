@@ -1,14 +1,14 @@
 <template>
   <div class="container pt-6 px-6 pb-6">
     <!-- ฟอร์มกรอกแจ้งปัญหา -->
-    <section>
+    <section v-if="user != null">
       <div class="root-rpForm">
         <div class="columns is-desktop">
           <div
             class="column is-full rpForm text-center"
             style="background-color: #aaa"
           >
-            <h3 :class="{ 'has-text-white': this.$parent.$data.darkMode }">
+            <h3>
               การแจ้งขอแก้ไขข้อมูลหรือข้อผิดพลาดระบบงาน
             </h3>
           </div>
@@ -18,7 +18,6 @@
             <div class="field is-horizontal">
               <div class="field-label">
                 <label
-                  :class="{ 'has-text-white': this.$parent.$data.darkMode }"
                   >ชื่อระบบงาน :</label
                 >
               </div>
@@ -37,7 +36,6 @@
             <div class="field is-horizontal">
               <div class="field-label">
                 <label
-                  :class="{ 'has-text-white': this.$parent.$data.darkMode }"
                   >สำนัก/กอง/กลุ่ม/สนง.ธพ :</label
                 >
               </div>
@@ -45,7 +43,7 @@
                 <input
                   type="text"
                   class="input is-small rpInput"
-                  v-model="agency"
+                  v-model="user.agency"
                   disabled
                 />
               </div>
@@ -57,7 +55,6 @@
             <div class="field is-horizontal">
               <div class="field-label">
                 <label
-                  :class="{ 'has-text-white': this.$parent.$data.darkMode }"
                   >ชื่อ-สกุล ผู้ขอแก้ไข :</label
                 >
               </div>
@@ -75,7 +72,6 @@
             <div class="field is-horizontal">
               <div class="field-label">
                 <label
-                  :class="{ 'has-text-white': this.$parent.$data.darkMode }"
                   >วันที่ขอแก้ไข :</label
                 >
               </div>
@@ -95,7 +91,6 @@
             <div class="field is-horizontal">
               <div class="field-label">
                 <label
-                  :class="{ 'has-text-white': this.$parent.$data.darkMode }"
                   >ตำแหน่ง :</label
                 >
               </div>
@@ -103,7 +98,7 @@
                 <input
                   type="text"
                   class="input is-small rpInput"
-                  v-model="job_title"
+                  v-model="user.job_title"
                   disabled
                 />
               </div>
@@ -112,9 +107,7 @@
         </div>
         <div class="columns is-desktop">
           <div class="column is-full rpForm has-text-left">
-            <label :class="{ 'has-text-white': this.$parent.$data.darkMode }"
-              >รายละเอียดการขอแก้ไข</label
-            >
+            <label>รายละเอียดการขอแก้ไข</label>
             <textarea
               class="textarea"
               rows="4"
@@ -125,27 +118,34 @@
         </div>
       </div>
       <!-- อัพโหลดไฟล์ -->
-      <vue-dropzone
-        class="mt-5"
-        ref="myVueDropzone"
-        id="dropzone"
-        :useCustomSlot="true"
-        :options="dropzoneOptions"
-        @vdropzone-success="vsuccess"
-        @vdropzone-removed-file="vremove"
-      >
-        <div class="dropzone-custom-content">
-          <h3 class="dropzone-custom-title">ลากแล้ววางเพื่อเพิ่มไฟล์</h3>
-          <div class="subtitle">...หรือคลิกเพื่อเลือกไฟล์</div>
+      <div>
+        <div v-if="state.files.length > 0" class="files">
+          <div class="file-item" v-for="(file, index) in state.files" :key="index">
+            <span>{{ file.name }}</span>
+            <span class="delete-file" @click="handleClickDeleteFile(index)">
+              Delete
+            </span>
+          </div>
         </div>
-      </vue-dropzone>
+        <div v-else class="dropzone" v-bind="getRootProps()">
+          <div
+            class="border"
+            :class="{
+              isDragActive,
+            }"
+          >
+            <input v-bind="getInputProps()" />
+            <p v-if="isDragActive">Drop the files here ...</p>
+            <p v-else>Drag and drop files here, or Click to select files</p>
+          </div>
+        </div>
+      </div>    
     </section>
     <!-- button -->
     <div class="field is-grouped mt-3">
       <div class="control">
         <button
           class="button"
-          :class="[this.$parent.$data.darkMode ? 'is-dark' : 'is-link']"
           @click="submit()"
         >
           ส่งรายงานปัญหา
@@ -174,23 +174,16 @@
 
 <script>
 import axios from "@/plugins/axios";
-import vue2Dropzone from "vue2-dropzone";
-import { required } from "vuelidate/lib/validators";
+import { useDropzone } from 'vue3-dropzone';
+import { required } from "@vuelidate/validators";
+import { useVuelidate } from '@vuelidate/core'
 
 export default {
   mame:"SentProblem",
-  components: {
-    vueDropzone: vue2Dropzone,
-  },
   data() {
-    
     return {
       user: null,
       systemName: "",
-      agency: this.$parent.$data.user.AGENCY,
-      first_name: this.$parent.$data.user.FIRST_NAME,
-      last_name: this.$parent.$data.user.LAST_NAME,
-      job_title: this.$parent.$data.user.JOB_TITLE,
       details: "",
       filesUpload: [],
       filesUploadName: [], // array of image
@@ -199,18 +192,11 @@ export default {
       modalAlert: false,
       mAlertText: "",
       success: false,
-      // dropzone
-      dropzoneOptions: {
-        url: "https://httpbin.org/post",
-        thumbnailWidth: 200,
-        maxFilesize: 0.5,
-        headers: { "My-Awesome-Header": "header value" },
-        addRemoveLinks: true,
-        maxFiles: 5,
-      },
     };
   },
-  mounted() {},
+  mounted(){
+    this.user = JSON.parse(localStorage.getItem("ts-user"));
+  },
   methods: {
     // อัพโหลดไฟล์
     vsuccess(file) {
@@ -263,27 +249,68 @@ export default {
       }
     },
   },
-  validations: {
-    fullname: {
-      required: required,
-    },
-    agency: {
-      required: required,
-    },
+  validations() {
+    return {
+      fullname: {
+        required: required,
+      },
+      agency: {
+        required: required,
+      },
+    }
   },
   computed: {
     timeNow() {
       return new Date().toLocaleDateString("th-TH");
     },
     fullname() {
-      return this.first_name + " " + this.last_name;
+      return this.user.first_name + " " + this.user.last_name;
     },
+  },
+  setup() {
+    const v$ = useVuelidate();
+    const url = "{your_url}"; // Your url on the server side
+    const saveFiles = (files) => {
+      const formData = new FormData(); // pass data as a form
+      for (var x = 0; x < files.length; x++) {
+        // append files as array to the form, feel free to change the array name
+        formData.append("images[]", files[x]);
+      }
+
+      // post the formData to your backend where storage is processed. In the backend, you will need to loop through the array and save each file through the loop.
+
+      axios
+        .post(url, formData, {
+          headers: {
+            "Content-Type": "multipart/form-data",
+          },
+        })
+        .then((response) => {
+          console.info(response.data);
+        })
+        .catch((err) => {
+          console.error(err);
+        });
+    };
+
+    function onDrop(acceptFiles, rejectReasons) {
+      saveFiles(acceptFiles); // saveFiles as callback
+      console.log(rejectReasons);
+    }
+
+    const { getRootProps, getInputProps, ...rest } = useDropzone({ onDrop });
+
+    return {
+      getRootProps,
+      getInputProps,
+      ...rest,
+      v$,
+    };
   },
 };
 </script>
 
 <style>
-@import "vue2-dropzone/dist/vue2Dropzone.min.css";
 select {
   width: 100%;
   max-height: 25px;

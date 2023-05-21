@@ -59,7 +59,7 @@ router.post('/user/signup', async (req, res, next) => {
     await conn.beginTransaction()
 
     const username = req.body.username
-    const password = await bcrypt.hash(req.body.password, 5)
+    const password = await bcrypt.hash(req.body.phone, 5)
     const first_name = req.body.first_name
     const last_name = req.body.last_name
     const job_title = req.body.job_title

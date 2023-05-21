@@ -411,4 +411,32 @@ router.put("/report/complete", isLoggedIn, async (req, res) => {
   }
 })
 
+router.get("/dashboard/problem/", isLoggedIn, async (req, res, next) => {
+  const user = req.user;
+  const conn = await pool.getConnection()
+  await conn.beginTransaction()
+
+  try {
+    var [day,_] = await conn.query(
+      "SELECT * FROM problems WHERE write_date >= CURDATE() && write_date < (CURDATE() + INTERVAL 1 DAY);"
+    );
+    var [week,_] = await conn.query(
+      "SELECT * FROM problemsWHERE  YEARWEEK(`write_date`, 1) = YEARWEEK(CURDATE(), 1);"
+    );
+    var [month,_] = await conn.query(
+      "SELECT * FROM problems WHERE MONTH(write_date) = MONTH(CURRENT_DATE()) AND "+
+      "YEAR(write_date) = YEAR(CURRENT_DATE()) ORDER BY write_date DESC;;"
+    );
+    res.json({
+      arrDay : day,
+      arrWeek : week,
+      arrMonth : month,
+    });
+  } catch (err) {
+    return res.status(400).json(err);
+  } finally {
+    conn.release();
+  }
+})
+
 exports.router = router;
