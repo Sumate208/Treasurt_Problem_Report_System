@@ -1,5 +1,6 @@
 <template>
   <div class="wrapper">
+  <loading-overlay :active="isLoading" :is-full-page="true" :loader="'spinner'" />
     <!-- Sidebar  -->
     <nav
       v-if="user"
@@ -42,15 +43,6 @@
             disabled
             @click="$router.push('/history')"
             >ค้นหากระแจ้งปัญหา</a
-          >
-        </li>
-        <li>
-          <a
-            class="sidebar-link"
-            :class="activeSidebarClass('ChatView')"
-            disabled
-            @click="$router.push('/chat')"
-            >หน้าสนทนา</a
           >
         </li>
         <li>
@@ -127,6 +119,29 @@
         </div>
 
         <div class="navbar-end">
+          <div class="dropdown is-right is-hoverable navbar-item" :class="{'is-active':dropDownAlert}">
+            <!-- <div class="dropdown-trigger">
+              <a @click="dropDownAlert = !dropDownAlert" ria-haspopup="true" aria-controls="dropdown-menu">
+                <font-awesome-icon 
+                class="has-text-white"
+                icon="fa-solid fa-bell" 
+                size="2x"
+                />
+              </a>
+            </div> -->
+            <div class="dropdown-menu" id="dropdown-alert" role="menu">
+              <div class="dropdown-content mr-4">
+                <span style="align-self: center;">ต้องดำเนินการ</span>
+                <a v-for="(alert, index) in arrAlert" 
+                  :key="index" class="dropdown-item"
+                  @click="$router.push(`/report/${alert.problem_id}`)"
+                >
+                <span>{{ (index+1)+".ระบบ: "+alert.systen_name }}</span>
+                <span>{{ "เวลา: "+alert.write_date }}</span>
+                </a>
+              </div>
+            </div>
+          </div>
           <a class="navbar-item" @click="darkMode = !darkMode">
             <font-awesome-icon
               v-show="darkMode"
@@ -149,15 +164,13 @@
 </template>
 <script>
 import axios from "@/plugins/axios";
-
 export default {
-  name:"AppData",
   data() {
     return {
-      token: localStorage.getItem("ts-token"),
       user: null,
       sideBarActive: false,
       darkMode: false,
+      isLoading: false,
       dropDownAlert: false,
       arrAlert: [],
     };
@@ -167,17 +180,20 @@ export default {
   },
   methods: {
     onAuthChange() {
-      const token = this.token;
+      const token = localStorage.getItem("ts-token");
       if (token) {
         this.getUser();
       }
     },
     getUser() {
+      this.isLoading = true;
       axios
         .get("/user")
         .then((res) => {
           this.user = res.data;
-          localStorage.setItem("ts-user", JSON.stringify(res.data));
+          this.isLoading = false
+          console.log(this.user.user_id)
+          console.log(localStorage.getItem("ts-token"))
           axios.get("https://api.chatengine.io/users/me/", {
             headers: {
               "Project-ID": "634202dd-06f3-4865-b702-ca0c6afe6519",
@@ -189,6 +205,7 @@ export default {
             const userData = { ...response.data, secret: localStorage.getItem("ts-token") };
             localStorage.setItem("user", JSON.stringify(userData));
             this.$emit("onAuth", userData);
+            console.log(localStorage)
           })
         })
         .catch((err) => {
@@ -198,10 +215,20 @@ export default {
     logOut() {
       this.$router.push({ path: "/signin" });
       localStorage.removeItem("ts-token");
-      localStorage.removeItem("ts-user");
-      localStorage.removeItem("user");
       this.user = null;
     },
+    // getAlert() {
+    //   axios
+    //     .get("/alert")
+    //     .then((res) => {
+    //       this.arrAlert = res.data;
+    //       this.$parent.$data.isLoading = false;
+    //     })
+    //     .catch((e) => {
+    //       console.log(e.response.data);
+    //       this.$parent.$data.isLoading = false;
+    //     });
+    // },
     sidebarClass(path){
       if(this.$router.$Root.name == path){
         return true

@@ -1,27 +1,30 @@
-import { createRouter, createWebHashHistory } from 'vue-router'
+import Vue from 'vue'
+import VueRouter from 'vue-router'
+
+Vue.use(VueRouter)
 
 const routes = [
   {
-    path: "/",
-    name: "HomePage",
+    path: '/',
+    name: 'HomePage',
     meta: { login: true },
-    component: () => import('../views/HomePage.vue')
-  },
-  {
-    path: '/signup',
-    name: 'signup',
-    component: () => import('../views/SignUpPage.vue')
+    component: () => import('../views/Home.vue')
   },
   {
     path: '/signin',
     name: 'signin',
-    component: () => import('../views/SignInPage.vue')
+    component: () => import('../views/SignIn.vue')
+  },
+  {
+    path: '/signup',
+    name: 'signup',
+    component: () => import('../views/SignUp.vue')
   },
   {
     path: '/profile',
     name: 'ProfilePage',
     meta: { login: true },
-    component: () => import('../views/ProfilePage.vue')
+    component: () => import('../views/Profile.vue')
   },
   {
     path: '/sent-problem',
@@ -45,17 +48,11 @@ const routes = [
     path: '/chat',
     name: 'ChatView',
     meta: { login: true },
-    component: () => import('../views/ChatPage.vue')
+    component: () => import('../views/ChatView.vue')
   },
-  {
-    path: '/test',
-    name: 'TestPage',
-    component: () => import('../views/TestPage.vue')
-  }
 ]
 
-const router = createRouter({
-  history: createWebHashHistory(),
+const router = new VueRouter({
   routes
 })
 

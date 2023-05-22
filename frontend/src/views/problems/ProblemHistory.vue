@@ -1,7 +1,8 @@
 <template>
-  <div class="container pt-4 px-6 pb-6" v-if="user != null">
+  <div class="container pt-4 px-6 pb-6">
     <h1
       class="is-size-3-tablet"
+      :class="{ 'has-text-white': this.$parent.$data.darkMode }"
     >
       การแจ้งขอแก้ไขข้อมูลทั้งหมด({{ problems.length }})รายการ
     </h1>
@@ -59,7 +60,8 @@
             v-model="agency"
             :options="allAgency.skk"
             label="title"
-          />
+          >
+          </v-select>
           <v-select
             class="agencyDropdown"
             v-if="agencyType == 'ธพ'"
@@ -67,7 +69,8 @@
             v-model="agency"
             :options="allAgency.tnp"
             label="title"
-          />
+          >
+          </v-select>
         </div>
       </div>
 
@@ -77,7 +80,7 @@
         <div class="column">
           <div class="field">
             <div class="control">
-              <VueDatePicker 
+              <DatePicker
                 class="full-width"
                 v-model="startDate"
                 :placeholder="'วันเริ่มค้นหา'"
@@ -92,8 +95,7 @@
         <div class="column">
           <div class="field">
             <div class="control">
-              
-              <VueDatePicker
+              <DatePicker
                 class="full-width"
                 v-model="endDate"
                 :placeholder="'วันสิ้นสุดค้นหา'"
@@ -111,10 +113,10 @@
             <div class="columns is-tablet statusFilter">
               <div
                 v-if="
-                  this.user &&
+                  this.$parent.$data.user &&
                   !(
-                    this.user.user_type == 'member' &&
-                    this.user.role == 'พนง.'
+                    this.$parent.$data.user.user_type == 'member' &&
+                    this.$parent.$data.user.role == 'พนง.'
                   )
                 "
                 class="column is-tablet"
@@ -275,16 +277,11 @@
 <script>
 import axios from "@/plugins/axios";
 import myJson2 from "@/data/agency2.json";
-import VueDatePicker from '@vuepic/vue-datepicker';
-
-import '@vuepic/vue-datepicker/dist/main.css'
 
 export default {
   name: "ProblemHistory",
-  
   data() {
     return {
-      user: null,
       search: "",
       problems: [], // array of problem
       todoProblem: [], 
@@ -310,12 +307,8 @@ export default {
       dateUp: false,
     };
   },
-  components: {
-    VueDatePicker
-  },
   mounted(){
-    this.user = JSON.parse(localStorage.getItem("ts-user"));
-    this.getProblem();
+    this.getProblem()
   },
   methods: {
     getProblem() {
@@ -323,7 +316,6 @@ export default {
         .get("/problem")
         .then((res) => {
           this.problems = res.data;
-          console.log(res.data)
           this.displayProblems = res.data;
           this.tablePage();
           this.sortByDate();
@@ -334,6 +326,7 @@ export default {
     },
     // request หา problem ที่ user ต้องดำเนินการ ไป server (ไฟล์ server/routes/problem.js) ที่ get("/todo-problem")
     getTodoProblem() {
+      this.$parent.$data.isLoading = true;
       axios
         .get("/todo-problem")
         .then((res) => {
@@ -399,6 +392,7 @@ export default {
       return result;
     },
     filterProblem() {
+      this.$parent.$data.isLoading = true;
       var list = this.Problems;
       if (this.status.a) {
         list = this.todoProblem;
@@ -477,6 +471,7 @@ export default {
       for (let i = 2; i < maxPage + 1; i++) {
         this.arrTablePage.push(i);
       }
+      this.$parent.$data.isLoading = false;
     },
     sortByName() {
       this.displayProblems.sort((a, b) => {
@@ -559,6 +554,7 @@ export default {
 
 <style>
 @import "@/css/bulma-responsive-tables.css";
+@import "vue-select/dist/vue-select.css";
 /* Modul Style */
 .v-calendar {
   width: 100%;
