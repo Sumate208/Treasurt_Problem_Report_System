@@ -37,7 +37,9 @@
                 </div>
               </div>
             </div>
-            <button @click="uploadFiles">Upload Files</button>
+            <button @click="run">Upload Files</button>
+            <!-- <button @click="uploadFiles">Upload Files</button> -->
+            <!-- <button @click="(setData(text))">setdta</button> -->
           </div>
         </div>
       </div>
@@ -48,7 +50,7 @@
 <script>
 // @ is an alias to /src
 import axios from "@/plugins/axios";
-import { ref } from "vue";
+import { ref  } from "vue";
 import { useDropzone } from "vue3-dropzone";
 
 export default {
@@ -57,28 +59,22 @@ export default {
   },
   data() {
     return {
+      text:'text',
     };
   },
   methods:{
-    clearFiles(){
-      this.filesUpload = [];
-    },
-    submit() {
-      // set data //
-      let formData = new FormData();
-      const token = localStorage.getItem("ts-token");
-      formData.append("token", token);
-      formData.append("systemName", this.systemName);
-      formData.append("details", this.details);
-      Array.from(this.filesUpload).forEach((file) => {
-        formData.append("File", file);
-      });
-      Array.from(this.filesUploadName).forEach((fileName) => {
-        formData.append("fileNames", fileName);
-      });
+    run(){
+      this.setData(this.text);
+      this.uploadFiles();
     },
   },
   setup() {
+    var data = {};
+    
+    const setData = (inp) => {
+      data = inp
+    };
+
     const uploadedFiles = ref([]);
 
     const saveFiles = (files) => {
@@ -93,8 +89,9 @@ export default {
     const { getRootProps, getInputProps } = useDropzone({ onDrop });
 
     const uploadFiles = async () => {
+      console.log(data)
       const formData = new FormData(); // pass data as a form
-      formData.append("text", 'testText');
+      // formData.append("text", data.text.value);
       for (let i = 0; i < uploadedFiles.value.length; i++) {
         formData.append("File", uploadedFiles.value[i]);
       }
@@ -109,6 +106,7 @@ export default {
     };
 
     return {
+      setData,
       uploadedFiles,
       getRootProps,
       getInputProps,

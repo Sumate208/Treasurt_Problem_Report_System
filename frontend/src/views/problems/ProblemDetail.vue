@@ -665,6 +665,16 @@ export default {
           .catch((e) => console.log(e.response.data));
       }
     },
+    s4analys(){
+      const token = localStorage.getItem("ts-token");
+      this.setData({
+        token: token,
+        problemId: this.$route.params.id,
+        problemType: this.s4ProblemType,
+        analysis: this.s4Analysis,
+      });
+      this.sendRequest();
+    },
     s56Confirm() {
       this.s5ModalActive = false;
       const data = {
@@ -689,6 +699,7 @@ export default {
     }
   },
   setup() {
+    var data = {};
     const v$ = useVuelidate();
     const uploadedFiles = ref([]);
 
@@ -703,13 +714,12 @@ export default {
 
     const { getRootProps, getInputProps } = useDropzone({ onDrop });
 
-    const s4analys = async () => {
+    const sendRequest = async () => {
       const formData = new FormData(); // pass data as a 
-      const token = localStorage.getItem("ts-token");
-      formData.append("token", token);
-      formData.append("problemId", this.$route.params.id);
-      formData.append("problemType", this.s4ProblemType);
-      formData.append("analysis", this.s4Analysis);
+      formData.append("token", data.token);
+      formData.append("problemId", data.problemId);
+      formData.append("problemType", data.problemType);
+      formData.append("analysis", data.analysis);
       for (let i = 0; i < uploadedFiles.value.length; i++) {
         formData.append("File", uploadedFiles.value[i]);
       }
@@ -728,7 +738,7 @@ export default {
       uploadedFiles,
       getRootProps,
       getInputProps,
-      s4analys,
+      sendRequest,
       v$,
     };
   },

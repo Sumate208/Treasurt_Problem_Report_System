@@ -164,7 +164,7 @@
       <div class="control">
         <button
           class="button"
-          @click="sentProblem"
+          @click="sendProblem"
         >
           ส่งรายงานปัญหา
         </button>
@@ -197,7 +197,7 @@ import { useVuelidate } from '@vuelidate/core'
 import { ref } from "vue";
 import { useDropzone } from "vue3-dropzone";
 export default {
-  mame:"SentProblem",
+  mame:"SendProblem",
   data() {
     return {
       user: null,
@@ -216,6 +216,13 @@ export default {
     this.user = JSON.parse(localStorage.getItem("ts-user"));
   },
   methods: {
+    sendProblem(){
+      this.setData({
+        systemName: this.systemName,
+        details: this.details,
+      });
+      this.sendRequest();
+    },
     goBack() {
       this.modalAlert = false;
       if (this.success) {
@@ -242,8 +249,13 @@ export default {
     },
   },
   setup() {
+    var data = {};
     const v$ = useVuelidate();
     const uploadedFiles = ref([]);
+
+    const setData = (inp) => {
+      data = inp
+    };
 
     const saveFiles = (files) => {
       uploadedFiles.value = files;
@@ -256,10 +268,10 @@ export default {
 
     const { getRootProps, getInputProps } = useDropzone({ onDrop });
 
-    const sentProblem = async () => {
+    const sendRequest = async () => {
       const formData = new FormData(); // pass data as a 
-      formData.append("systemName", this.systemName);
-      formData.append("details", this.details);
+      formData.append("systemName", data.systemName);
+      formData.append("details", data.details);
       for (let i = 0; i < uploadedFiles.value.length; i++) {
         formData.append("File", uploadedFiles.value[i]);
       }
@@ -274,10 +286,11 @@ export default {
     };
 
     return {
+      setData,
       uploadedFiles,
       getRootProps,
       getInputProps,
-      sentProblem,
+      sendRequest,
       v$,
     };
   },
