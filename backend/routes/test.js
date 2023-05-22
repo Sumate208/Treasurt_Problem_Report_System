@@ -3,9 +3,26 @@ const pool = require("../config")
 const Joi = require('joi')
 const bcrypt = require('bcrypt');
 const { isLoggedIn } = require('../middlewares');
+const multer = require("multer");
 const { number } = require("joi");
+const path = require("path");
 
 router = express.Router();
+
+// SET STORAGE
+const storage = multer.diskStorage({
+    destination: function (req, file, callback) {
+      callback(null, "./static/uploads");
+    },
+    filename: function (req, file, callback) {
+        console.log(file)
+      callback(
+        null,
+        file.fieldname + "-" + Date.now() + path.extname(file.originalname)
+      );
+    },
+  });
+  const upload = multer({ storage: storage });
 
 router.post('/test', async (req, res, next) => {
     const conn = await pool.getConnection()
@@ -104,5 +121,21 @@ router.post('/user/signup/staff', async (req, res, next) => {
         conn.release()
     }
 })
+
+router.post("/test/upload", isLoggedIn, upload.array("File", 5), async function (req, res, next) {
+    const file = req.files;
+  
+    if (!file) {
+      return res.status(400).json({ message: "Please upload a file" });
+    }
+    const text = req.body.text;
+
+    try {
+      res.send("อัพโหลดแล้ว");
+    } catch (err) {
+      return res.status(400).json(err);
+    } finally {
+    }
+  });
 
 exports.router = router

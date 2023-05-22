@@ -345,25 +345,43 @@
           </div>
         </div>
         <!-- DropZone -->
-        <div>
-          <div v-if="state.files.length > 0" class="files">
-            <div class="file-item" v-for="(file, index) in state.files" :key="index">
-              <span>{{ file.name }}</span>
-              <span class="delete-file" @click="handleClickDeleteFile(index)"
-                >Delete</span
-              >
+        <div class="mt-4">
+          <div > <!-- DropZone -->
+            <div v-bind="getRootProps()" class="dropzone">
+              <input v-bind="getInputProps()"/>
+              <p v-if="isDragActive">Drop the files here ...</p>
+              <p v-else>Drag 'n' drop some files here, or click to select files</p>
             </div>
           </div>
-          <div v-else class="dropzone" v-bind="getRootProps()">
-            <div
-              class="border"
-              :class="{
-                isDragActive,
-              }"
-            >
-              <input v-bind="getInputProps()" />
-              <p v-if="isDragActive">Drop the files here ...</p>
-              <p v-else>Drag and drop files here, or Click to select files</p>
+          <!-- Display Files -->
+          <div class="columns">
+            <div class="column is-12 pt-6">
+              <div>
+                <h1 class="is-size-4 mb-4">All Files ({{ uploadedFiles.length }})</h1>
+                <Button class="is-danger mb-4 button" @click="uploadedFiles = []">Clear</Button>
+              </div>
+              <div class="container is-max-desktop">
+                <div class="is-multiline columns is-variable is-2">
+                  <div id="card_product" class="column is-one-fifth" v-for="file,index in uploadedFiles" :key="index">
+                    <div class="card">
+                      <div class="card-content">
+                        <font-awesome-icon :icon="['fasr', 'file-word']" size="2xl" v-if="file.type == 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'"/>
+                        <font-awesome-icon :icon="['fas', 'file-pdf']" size="2xl" v-else-if="file.type == 'application/pdf'"/>
+                        <font-awesome-icon :icon="['fas', 'file-image']" size="2xl" v-else-if="file.type == 'image/png' || file.type == 'image/jpeg'"/>
+                        <font-awesome-icon :icon="['fas', 'file']" size="2xl" v-else/>
+                        <div class="media">
+                          <div class="media-content">
+                            <p>{{ file.name }}</p>
+                          </div>
+                        </div>
+                        <button @click="uploadedFiles.splice(index, 1)">
+                          Remove
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -497,7 +515,8 @@
 import axios from "@/plugins/axios";
 import { required} from "@vuelidate/validators";
 import { useVuelidate } from '@vuelidate/core'
-import { useDropzone } from 'vue3-dropzone';
+import { ref } from "vue";
+import { useDropzone } from "vue3-dropzone";
 
 export default {
   name:"ProblemDetail",
@@ -520,8 +539,6 @@ export default {
       // data state4
       s4Analysis: "",
       s4ProblemType: "",
-      filesUpload: [],
-      filesUploadName: [],
       // data state5
       s5ModalActive: false,
       // dropzone
@@ -648,33 +665,6 @@ export default {
           .catch((e) => console.log(e.response.data));
       }
     },
-    s4analys() {
-      if (!this.v$.s4Analysis.$invalid) {
-        // set data //
-        let formData = new FormData();
-        const token = localStorage.getItem("ts-token");
-        formData.append("token", token);
-        formData.append("problemId", this.$route.params.id);
-        formData.append("problemType", this.s4ProblemType);
-        formData.append("analysis", this.s4Analysis);
-        Array.from(this.filesUpload).forEach((file) => {
-          formData.append("File", file);
-        });
-        Array.from(this.filesUploadName).forEach((fileName) => {
-          formData.append("fileNames", fileName);
-        });
-        // set data //
-        axios
-          .put("/problem/analysis", formData)
-          .then((res) => {
-            this.mAlertText = res.data;
-            this.mAlertActive = true;
-          })
-          .catch((e) => {
-            console.log(e.response.data);
-          });
-      }
-    },
     s56Confirm() {
       this.s5ModalActive = false;
       const data = {
@@ -696,48 +686,49 @@ export default {
       s23AssignId: {
         required: required,
       },
-      s4Analysis: {
-        required: required,
-      },
     }
   },
   setup() {
     const v$ = useVuelidate();
+    const uploadedFiles = ref([]);
 
-    const url = "{your_url}"; // Your url on the server side
     const saveFiles = (files) => {
-      const formData = new FormData(); // pass data as a form
-      for (var x = 0; x < files.length; x++) {
-        // append files as array to the form, feel free to change the array name
-        formData.append("images[]", files[x]);
+      uploadedFiles.value = files;
+    };
+
+    function onDrop(acceptedFiles, rejectedFiles) {
+      saveFiles(acceptedFiles);
+      console.log(rejectedFiles);
+    }
+
+    const { getRootProps, getInputProps } = useDropzone({ onDrop });
+
+    const s4analys = async () => {
+      const formData = new FormData(); // pass data as a 
+      const token = localStorage.getItem("ts-token");
+      formData.append("token", token);
+      formData.append("problemId", this.$route.params.id);
+      formData.append("problemType", this.s4ProblemType);
+      formData.append("analysis", this.s4Analysis);
+      for (let i = 0; i < uploadedFiles.value.length; i++) {
+        formData.append("File", uploadedFiles.value[i]);
       }
-
-      // post the formData to your backend where storage is processed. In the backend, you will need to loop through the array and save each file through the loop.
-
       axios
-        .post(url, formData, {
-          headers: {
-            "Content-Type": "multipart/form-data",
-          },
+        .put("/problem/analysis", formData)
+        .then((res) => {
+          this.mAlertText = res.data;
+          this.mAlertActive = true;
         })
-        .then((response) => {
-          console.info(response.data);
-        })
-        .catch((err) => {
-          console.error(err);
+        .catch((e) => {
+          console.log(e.response.data);
         });
     };
 
-    function onDrop(acceptFiles, rejectReasons) {
-      saveFiles(acceptFiles); // saveFiles as callback
-      console.log(rejectReasons);
-    }
-
-    const { getRootProps, getInputProps, ...rest } = useDropzone({ onDrop });
     return {
+      uploadedFiles,
       getRootProps,
       getInputProps,
-      ...rest,
+      s4analys,
       v$,
     };
   },
@@ -745,6 +736,7 @@ export default {
 </script>
 
 <style>
+@import "@/css/dropzone.scss";
 #select {
   height: 40px;
 }

@@ -118,35 +118,53 @@
         </div>
       </div>
       <!-- อัพโหลดไฟล์ -->
-      <div>
-        <div v-if="state.files.length > 0" class="files">
-          <div class="file-item" v-for="(file, index) in state.files" :key="index">
-            <span>{{ file.name }}</span>
-            <span class="delete-file" @click="handleClickDeleteFile(index)">
-              Delete
-            </span>
-          </div>
-        </div>
-        <div v-else class="dropzone" v-bind="getRootProps()">
-          <div
-            class="border"
-            :class="{
-              isDragActive,
-            }"
-          >
-            <input v-bind="getInputProps()" />
+      <div class="mt-4">
+        <div > <!-- DropZone -->
+          <div v-bind="getRootProps()" class="dropzone">
+            <input v-bind="getInputProps()"/>
             <p v-if="isDragActive">Drop the files here ...</p>
-            <p v-else>Drag and drop files here, or Click to select files</p>
+            <p v-else>Drag 'n' drop some files here, or click to select files</p>
           </div>
         </div>
-      </div>    
+        <!-- Display Files -->
+        <div class="columns">
+          <div class="column is-12 pt-6">
+            <div>
+              <h1 class="is-size-4 mb-4">All Files ({{ uploadedFiles.length }})</h1>
+              <Button class="is-danger mb-4 button" @click="uploadedFiles = []">Clear</Button>
+            </div>
+            <div class="container is-max-desktop">
+              <div class="is-multiline columns is-variable is-2">
+                <div id="card_product" class="column is-one-fifth" v-for="file,index in uploadedFiles" :key="index">
+                  <div class="card">
+                    <div class="card-content">
+                      <font-awesome-icon :icon="['fasr', 'file-word']" size="2xl" v-if="file.type == 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'"/>
+                      <font-awesome-icon :icon="['fas', 'file-pdf']" size="2xl" v-else-if="file.type == 'application/pdf'"/>
+                      <font-awesome-icon :icon="['fas', 'file-image']" size="2xl" v-else-if="file.type == 'image/png' || file.type == 'image/jpeg'"/>
+                      <font-awesome-icon :icon="['fas', 'file']" size="2xl" v-else/>
+                      <div class="media">
+                        <div class="media-content">
+                          <p>{{ file.name }}</p>
+                        </div>
+                      </div>
+                      <button @click="uploadedFiles.splice(index, 1)">
+                        Remove
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>   
     </section>
     <!-- button -->
     <div class="field is-grouped mt-3">
       <div class="control">
         <button
           class="button"
-          @click="submit()"
+          @click="sentProblem"
         >
           ส่งรายงานปัญหา
         </button>
@@ -174,10 +192,10 @@
 
 <script>
 import axios from "@/plugins/axios";
-import { useDropzone } from 'vue3-dropzone';
 import { required } from "@vuelidate/validators";
 import { useVuelidate } from '@vuelidate/core'
-
+import { ref } from "vue";
+import { useDropzone } from "vue3-dropzone";
 export default {
   mame:"SentProblem",
   data() {
@@ -198,50 +216,6 @@ export default {
     this.user = JSON.parse(localStorage.getItem("ts-user"));
   },
   methods: {
-    // อัพโหลดไฟล์
-    vsuccess(file) {
-      this.filesUpload.push(file);
-      this.filesUploadName.push(file.upload.filename);
-    },
-    // ลบไฟล์ที่เลือก
-    vremove(file) {
-      var index = this.filesUpload.indexOf(file);
-      if (index > -1) {
-        this.filesUpload.splice(index, 1);
-        this.filesUploadName.splice(index, 1);
-      }
-    },
-    // ส่งแจ้งปัญหา
-    submit() {
-      this.$parent.$data.isLoading = true;
-      // set data //
-      let formData = new FormData();
-      formData.append("systemName", this.systemName);
-      formData.append("details", this.details);
-      Array.from(this.filesUpload).forEach((file) => {
-        formData.append("File", file);
-      });
-      Array.from(this.filesUploadName).forEach((fileName) => {
-        formData.append("fileNames", fileName);
-      });
-      // set data ///
-
-      // request บันทึก problem ไป server (ไฟล์ server/routes/problem.js) ที่ post("/problem")
-      axios
-        .post("/problem", formData)
-        .then((res) => {
-          this.mAlertText = res.data;
-          this.$parent.$data.isLoading = false;
-          this.modalAlert = true;
-          this.success = true;
-        })
-        .catch((e) => {
-          this.mAlertText = e.response.data;
-          this.$parent.$data.isLoading = false;
-          this.modalAlert = true;
-          console.log(e.response.data);
-        });
-    },
     goBack() {
       this.modalAlert = false;
       if (this.success) {
@@ -269,22 +243,28 @@ export default {
   },
   setup() {
     const v$ = useVuelidate();
-    const url = "{your_url}"; // Your url on the server side
+    const uploadedFiles = ref([]);
+
     const saveFiles = (files) => {
-      const formData = new FormData(); // pass data as a form
-      for (var x = 0; x < files.length; x++) {
-        // append files as array to the form, feel free to change the array name
-        formData.append("images[]", files[x]);
+      uploadedFiles.value = files;
+    };
+
+    function onDrop(acceptedFiles, rejectedFiles) {
+      saveFiles(acceptedFiles);
+      console.log(rejectedFiles);
+    }
+
+    const { getRootProps, getInputProps } = useDropzone({ onDrop });
+
+    const sentProblem = async () => {
+      const formData = new FormData(); // pass data as a 
+      formData.append("systemName", this.systemName);
+      formData.append("details", this.details);
+      for (let i = 0; i < uploadedFiles.value.length; i++) {
+        formData.append("File", uploadedFiles.value[i]);
       }
-
-      // post the formData to your backend where storage is processed. In the backend, you will need to loop through the array and save each file through the loop.
-
       axios
-        .post(url, formData, {
-          headers: {
-            "Content-Type": "multipart/form-data",
-          },
-        })
+        .post("/problem", formData)
         .then((response) => {
           console.info(response.data);
         })
@@ -293,17 +273,11 @@ export default {
         });
     };
 
-    function onDrop(acceptFiles, rejectReasons) {
-      saveFiles(acceptFiles); // saveFiles as callback
-      console.log(rejectReasons);
-    }
-
-    const { getRootProps, getInputProps, ...rest } = useDropzone({ onDrop });
-
     return {
+      uploadedFiles,
       getRootProps,
       getInputProps,
-      ...rest,
+      sentProblem,
       v$,
     };
   },
@@ -311,6 +285,7 @@ export default {
 </script>
 
 <style>
+@import "@/css/dropzone.scss";
 select {
   width: 100%;
   max-height: 25px;

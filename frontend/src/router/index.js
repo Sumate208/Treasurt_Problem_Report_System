@@ -46,6 +46,11 @@ const routes = [
     name: 'ChatView',
     meta: { login: true },
     component: () => import('../views/ChatPage.vue')
+  },
+  {
+    path: '/test',
+    name: 'TestPage',
+    component: () => import('../views/TestPage.vue')
   }
 ]
 
