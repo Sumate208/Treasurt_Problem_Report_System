@@ -273,7 +273,6 @@ export default {
         axios
           .post("http://localhost:3000/user/signup", data)
           .then((res) => {
-            clearInterval(this.intervalid1);
             alert(res.data.msg);
             this.$router.push({ path: "/signin" });
           })

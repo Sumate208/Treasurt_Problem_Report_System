@@ -59,7 +59,7 @@ router.post('/user/signup', async (req, res, next) => {
         )
         await conn.query(
             'INSERT INTO member(user_id, agency, role, job_title) VALUES (?, ?, ?, ?)',
-            [sql.insertId, agency, first_name, 'พนง.', job_title]
+            [sql.insertId, agency, 'พนง.', job_title]
         )
         conn.commit()
         res.status(201).send("สมัครสมาชิคเรียกร้อย")

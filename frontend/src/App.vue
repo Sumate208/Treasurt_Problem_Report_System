@@ -177,8 +177,6 @@ export default {
         .get("/user")
         .then((res) => {
           this.user = res.data;
-          console.log(this.user.user_id)
-          console.log(localStorage.getItem("ts-token"))
           localStorage.setItem("ts-user", JSON.stringify(res.data));
           axios.get("https://api.chatengine.io/users/me/", {
             headers: {

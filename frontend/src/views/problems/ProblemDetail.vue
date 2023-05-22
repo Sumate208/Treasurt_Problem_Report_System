@@ -703,6 +703,10 @@ export default {
     const v$ = useVuelidate();
     const uploadedFiles = ref([]);
 
+    const setData = (inp) => {
+      data = inp
+    };
+
     const saveFiles = (files) => {
       uploadedFiles.value = files;
     };
@@ -735,6 +739,7 @@ export default {
     };
 
     return {
+      setData,
       uploadedFiles,
       getRootProps,
       getInputProps,

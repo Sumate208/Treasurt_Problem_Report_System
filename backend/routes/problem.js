@@ -24,37 +24,39 @@ const upload = multer({ storage: storage });
 router.post("/problem", isLoggedIn, upload.array("File", 5), async function (req, res, next) {
   const file = req.files;
   const user = req.user;
-  let pathArray = [];
-  let userArray = [];
 
   if (!file) {
     return res.status(400).json({ message: "Please upload a file" });
   }
   const systemName = req.body.systemName;
   const details = req.body.details;
-  const fileNames = req.body.fileNames;
-  
+
   const conn = await pool.getConnection();
   await conn.beginTransaction();
 
+  var pathArray = [];
+  var userArray = [];
+
   try {
     // หา USER_ID ผอ/ธพ
-    var [manager,_] = await conn.query(
+    var [managers,_] = await conn.query(
       "SELECT user_id FROM member WHERE agency = ? AND role = ?",
       [ user.agency, "ผอ./ธพ."]
     );
+    var manager = managers[0];
     //  INSER REPORT 
     let discription = "รอ(ผอ./ธพ." + user.agency + ")อนุมัติ";
     var [sql,_] = await conn.query(
       "INSERT INTO problems(informer_id, system_name, details, editor_id, "+
-      "STATE,STATUS) VALUES(:v1, :v2, :v3, :v4, :v5, :v6) RETURNING REPORT_ID INTO :REPORT_ID",
+      "state,status) VALUES(?, ?, ?, ?, ?, ?);",
       [user.user_id, systemName, details, manager.user_id, 1, discription]
     )
+
     let insertId = sql.insertId
-    
+
     //  INSER Problem_Files
-    req.files.forEach((file, index) => {
-      let path = [insertId, fileNames[index],file.path.substring(6),"0"];
+    file.forEach((file, index) => {
+      let path = [insertId, file.filename,file.path.substring(6),"0"];
       pathArray.push(path);
     });
     await conn.query(
@@ -73,13 +75,14 @@ router.post("/problem", isLoggedIn, upload.array("File", 5), async function (req
     //  INSER Log
     let textDis = "(" + user.first_name + " " + user.last_name + ") แจ้งขอแก้ไขข้อมูล/ข้อผิดพลาด"
     await conn.query(
-      "INSERT INTO problem_log(problem_id, discription) VALUES(:v1, :v2)",
+      "INSERT INTO problem_log(problem_id, discription) VALUES(?, ?)",
       [insertId, textDis]
     );
     await conn.commit();
     res.send("แจ้งขอแก้ไขข้อมูล/ข้อผิดพลาดเรียบร้อย รอดำเนินการ");
   } catch (err) {
     await conn.rollback();
+    console.log(err)
     return res.status(400).json(err);
   } finally {
     conn.release();
@@ -136,37 +139,41 @@ router.get('/problem/detail', isLoggedIn, async (req, res, next) => {
   await conn.beginTransaction()
 
   try {
-    var [permision,_] = await conn.query(
-      "SELECT * FROM problem_permision " +
-      "WHERE user_id = ? AND problem_id = ?",
-      [user.user_id, problemId]
-    );
-    if (!permision.rows[0]) {
-      return res.status(400).json("คุณไม่มีสิทธิในการดำเนินการ"); 
-    }
-    else{
-      var [problems,_] = await conn.query(
-        "SELECT p.problem_id, p.system_name, u.first_name, u.last_name, m.agency, m.job_title, " +
-        "p.editor_id, p.write_date, p.details, p.assign_details, p.problem_type, p.status, " +
-        "p.analysis, p.state FROM problems p LEFT JOIN users u ON(p.informer_id = u.user_id) " +
-        "LEFT JOIN member m ON(p.informer_id = m.user_id) WHERE p.problem_id = ?",
-        [problemId]
-      );
+    console.log('dddd')
+    // var [permision,_] = await conn.query(
+    //   "SELECT * FROM problem_permision " +
+    //   "WHERE user_id = ? AND problem_id = ?",
+    //   [user.user_id, problemId]
+    // );
+    // if (!permision.rows[0]) {
+    //   return res.status(400).json("คุณไม่มีสิทธิในการดำเนินการ"); 
+    // }
+    // else{
+    //   var [problems,_] = await conn.query(
+    //     "SELECT p.problem_id, p.system_name, u.first_name, u.last_name, m.agency, m.job_title, " +
+    //     "p.editor_id, p.write_date, p.details, p.assign_details, p.problem_type, p.status, " +
+    //     "p.analysis, p.state FROM problems p LEFT JOIN users u ON(p.informer_id = u.user_id) " +
+    //     "LEFT JOIN member m ON(p.informer_id = m.user_id) WHERE p.problem_id = ?",
+    //     [problemId]
+    //   );
 
-      var [files,_] = await conn.query(
-        "SELECT * FROM problem_files WHERE problem_id = ?",
-        [problemId]
-      );
-      var [logs,_] = await conn.query(
-        "SELECT * FROM problem_log WHERE problem_id = ?",
-        [problemId]
-      );
-      res.status(200).json({
-        problem: problems,
-        files: files[0],
-        logs: logs[0],
-      });
-    }
+    //   var [files,_] = await conn.query(
+    //     "SELECT * FROM problem_files WHERE problem_id = ?",
+    //     [problemId]
+    //   );
+    //   var [logs,_] = await conn.query(
+    //     "SELECT * FROM problem_log WHERE problem_id = ?",
+    //     [problemId]
+    //   );
+    //   console.log(problems)
+    //   console.log(files)
+    //   console.log(logs)
+    //   res.status(200).json({
+    //     problem: problems,
+    //     files: files[0],
+    //     logs: logs[0],
+    //   });
+    // }
   } catch (err) {
     return res.status(400).json("บางอย่างผิดพลาด");
   } finally {

@@ -315,6 +315,7 @@ export default {
   },
   mounted(){
     this.user = JSON.parse(localStorage.getItem("ts-user"));
+    this.getProblem();
   },
   methods: {
     getProblem() {
