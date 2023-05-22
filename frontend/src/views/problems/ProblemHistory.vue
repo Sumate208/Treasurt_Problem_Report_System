@@ -322,6 +322,7 @@ export default {
         .get("/problem")
         .then((res) => {
           this.problems = res.data;
+          console.log(res.data)
           this.displayProblems = res.data;
           this.tablePage();
           this.sortByDate();

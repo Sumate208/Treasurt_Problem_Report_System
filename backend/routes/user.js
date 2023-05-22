@@ -17,16 +17,6 @@ const usernameValidator = async (value, helpers) => {
     return value
 }
 
-const passwordValidator = (value, helpers) => {
-    if (value.length < 8) {
-        throw new Joi.ValidationError('Password must contain at least 8 characters')
-    }
-    if (!(value.match(/[a-z]/) && value.match(/[A-Z]/) && value.match(/[0-9]/))) {
-        throw new Joi.ValidationError('Password must be harder')
-    }
-    return value
-}
-
 const phoneValidator = async (value, helpers) => {
     const [rows, _] = await pool.query("SELECT phone FROM users WHERE phone = ?", [value])
     if (rows.length > 0) {
@@ -38,14 +28,11 @@ const phoneValidator = async (value, helpers) => {
 
 const signupSchema = Joi.object({
     username: Joi.string().required().pattern(/[0-9]{13}/).external(usernameValidator),
-    password: Joi.string().required().custom(passwordValidator),
-    confirm_password: Joi.string().required().valid(Joi.ref('password')),
     first_name: Joi.string().required().max(20),
     last_name: Joi.string().required().max(20),
     phone: Joi.string().required().pattern(/0[6,8,9]{1}[0-9]{8}/).external(phoneValidator),
     agency: Joi.string().required(),
     job_title: Joi.string().required(),
-    agencyType: Joi.string().required(),
 })
 
 router.post('/user/signup', async (req, res, next) => {
@@ -62,20 +49,20 @@ router.post('/user/signup', async (req, res, next) => {
     const password = await bcrypt.hash(req.body.phone, 5)
     const first_name = req.body.first_name
     const last_name = req.body.last_name
-    const job_title = req.body.job_title
+    const job_title = req.body.jobtitle
     const agency = req.body.agency
     const phone = req.body.phone
     try {
-        var [sql,_] = await conn.query(
+        var [sql,] = await conn.query(
             'INSERT INTO users(username, password, first_name, last_name, phone, user_type) VALUES (?, ?, ?, ?, ?, ?)',
-            [username, password, first_name, last_name, phone, 'Customer']
+            [username, password, first_name, last_name, phone, 'member']
         )
         await conn.query(
             'INSERT INTO member(user_id, agency, role, job_title) VALUES (?, ?, ?, ?)',
-            [sql.insertId, agency, fname, 'พนง.', job_title]
+            [sql.insertId, agency, first_name, 'พนง.', job_title]
         )
         conn.commit()
-        res.status(201).send()
+        res.status(201).send("สมัครสมาชิคเรียกร้อย")
     } catch (err) {
         conn.rollback()
         res.status(400).json(err.toString());
@@ -148,7 +135,7 @@ router.get('/user', isLoggedIn, async (req, res, next) => {
 const ChangePasswordSchema = Joi.object({
     user_id: Joi.string().required(),
     oldPassword: Joi.string().required(),
-    newPassword: Joi.string().required().custom(passwordValidator),
+    newPassword: Joi.string().required().custom(phoneValidator),
     confirm_password: Joi.string().required().valid(Joi.ref('password')),
 })
 
