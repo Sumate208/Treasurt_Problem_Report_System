@@ -12,12 +12,10 @@ app.use(express.json()) // for parsing application/json
 app.use(express.urlencoded({ extended: true })) // for parsing application/x-www-form-urlencoded
 
 // routers
-const indexRouter = require('./routes/index')
 const problemRouter = require('./routes/problem')
 const testRouter = require('./routes/test')
 const userRouter = require('./routes/user')
 
-app.use(indexRouter.router)
 app.use(problemRouter.router)
 app.use(testRouter.router)
 app.use(userRouter.router)

@@ -177,6 +177,8 @@ export default {
         .get("/user")
         .then((res) => {
           this.user = res.data;
+          console.log(this.user.user_id)
+          console.log(localStorage.getItem("ts-token"))
           localStorage.setItem("ts-user", JSON.stringify(res.data));
           axios.get("https://api.chatengine.io/users/me/", {
             headers: {
@@ -199,6 +201,7 @@ export default {
       this.$router.push({ path: "/signin" });
       localStorage.removeItem("ts-token");
       localStorage.removeItem("ts-user");
+      localStorage.removeItem("user");
       this.user = null;
     },
     sidebarClass(path){
